@@ -1,0 +1,4 @@
+bin
+obj
+*.yml
+.vscode
