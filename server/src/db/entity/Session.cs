@@ -68,9 +68,9 @@ public class Session : Entity<SessionDto>
 
         User authUser = DatabaseUtils.SelectOne<User>(
             """
-            SELECT users.* FROM sessions
-            INNER JOIN users ON users.id = sessions.user_id
-            WHERE sessions.session_token = ($1)
+            SELECT u.* FROM sessions s
+            INNER JOIN users u ON u.id = s.user_id
+            WHERE s.session_token = ($1)
             """,
             sessionToken
         );

@@ -44,6 +44,38 @@ internal class Program
             }
         );
 
+        // GROUP
+        app.MapPost(
+            "/group",
+            (HttpRequest request, [FromBody] JsonElement json) =>
+            {
+                if (!request.Headers.ContainsKey("session"))
+                    return Results.Unauthorized();
+
+                return GroupController.Create(json, request.Headers["session"]);
+            }
+        );
+        app.MapGet(
+            "/group",
+            (HttpRequest request) =>
+            {
+                if (!request.Headers.ContainsKey("session"))
+                    return Results.Unauthorized();
+
+                return GroupController.GetCurrent(request.Headers["session"]);
+            }
+        );
+        app.MapPost(
+            "/join/{inviteCode}",
+            (HttpRequest request, string inviteCode) =>
+            {
+                if (!request.Headers.ContainsKey("session"))
+                    return Results.Unauthorized();
+
+                return GroupController.JoinFromInvite(inviteCode, request.Headers["session"]);
+            }
+        );
+
         app.Run();
     }
 }
