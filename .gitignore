@@ -2,3 +2,4 @@ bin
 obj
 *.yml
 .vscode
+appsettings.json
