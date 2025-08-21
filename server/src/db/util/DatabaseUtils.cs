@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Npgsql;
-using Resweet.Api.DataTransferObjects;
 using Resweet.Database.Entities;
 
 namespace Resweet.Database.Utils;
@@ -16,9 +15,8 @@ public static class DatabaseUtils
         dataSource = NpgsqlDataSource.Create(connectionString);
     }
 
-    public static T SelectOne<T, U>(string query, params object[] args)
-        where T : Entity<U>, new()
-        where U : Dto
+    public static T SelectOne<T>(string query, params object[] args)
+        where T : Entity, new()
     {
         if (dataSource == null)
             throw new NullReferenceException(
@@ -37,9 +35,8 @@ public static class DatabaseUtils
         }
     }
 
-    public static T[] SelectMany<T, U>(string query, params object[] args)
-        where T : Entity<U>, new()
-        where U : Dto
+    public static T[] SelectMany<T>(string query, params object[] args)
+        where T : Entity, new()
     {
         if (dataSource == null)
             throw new NullReferenceException(

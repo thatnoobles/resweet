@@ -1,6 +1,5 @@
 using System;
 using System.Security.Cryptography;
-using System.Text;
 using Npgsql;
 using Resweet.Api.DataTransferObjects;
 using Resweet.Database.Utils;
@@ -9,9 +8,8 @@ namespace Resweet.Database.Entities;
 
 public class User : Entity<UserDto>
 {
-    private const int SALT_LENGTH = 32;
+    public Guid Id { get; private set; }
 
-    private Guid id;
     private string displayName;
     private string handle;
     private string passwordHash;
@@ -21,11 +19,20 @@ public class User : Entity<UserDto>
 
     public void PopulateFromReader(NpgsqlDataReader reader)
     {
-        id = reader.GetFieldValue<Guid>(0);
+        Id = reader.GetFieldValue<Guid>(0);
         displayName = reader.GetFieldValue<string>(1);
         handle = reader.GetFieldValue<string>(2);
         passwordHash = reader.GetFieldValue<string>(3);
         salt = reader.GetFieldValue<byte[]>(4);
+    }
+
+    public bool ValidatePassword(string password)
+    {
+        string passwordHash = Convert.ToBase64String(
+            Rfc2898DeriveBytes.Pbkdf2(password, salt, 100000, HashAlgorithmName.SHA256, 64)
+        );
+
+        return this.passwordHash == passwordHash;
     }
 
     public static User Create(string displayName, string handle, string password)
@@ -50,5 +57,5 @@ public class User : Entity<UserDto>
     }
 
     public static User GetByHandle(string handle) =>
-        DatabaseUtils.SelectOne<User, UserDto>("SELECT * FROM users WHERE handle = ($1)", handle);
+        DatabaseUtils.SelectOne<User>("SELECT * FROM users WHERE handle = ($1)", handle);
 }

@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 using Resweet;
 using Resweet.Api.Controllers;
 using Resweet.Database.Utils;
@@ -20,8 +18,31 @@ internal class Program
         app.MapGet("/", () => "Hello World!");
 
         // USER
-        app.MapPost("/users", ([FromBody] JsonElement json) => UserController.Create(json));
-        app.MapGet("/users/{handle}", UserController.GetByHandle);
+        app.MapPost("/user", ([FromBody] JsonElement json) => UserController.Create(json));
+        app.MapGet(
+            "/user",
+            (HttpRequest request) =>
+            {
+                if (!request.Headers.ContainsKey("session"))
+                    return Results.Unauthorized();
+
+                return UserController.GetCurrent(request.Headers["session"]);
+            }
+        );
+        app.MapGet("/user/{handle}", UserController.GetByHandle);
+
+        // AUTH
+        app.MapPost("/auth/login", ([FromBody] JsonElement json) => AuthController.Login(json));
+        app.MapPost(
+            "/auth/logout",
+            (HttpRequest request) =>
+            {
+                if (!request.Headers.ContainsKey("session"))
+                    return Results.Unauthorized();
+
+                return AuthController.Logout(request.Headers["session"]);
+            }
+        );
 
         app.Run();
     }

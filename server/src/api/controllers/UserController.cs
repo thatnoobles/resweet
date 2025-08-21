@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
 using Resweet.Api.Utils;
 using Resweet.Database.Entities;
 
@@ -33,6 +31,16 @@ public static class UserController
 
         if (user == null)
             return Results.NotFound();
+
+        return Results.Ok(user.ToDto());
+    }
+
+    public static IResult GetCurrent(string sessionToken)
+    {
+        User user = Session.Authenticate(sessionToken);
+
+        if (user == null)
+            return Results.Unauthorized();
 
         return Results.Ok(user.ToDto());
     }
