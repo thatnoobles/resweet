@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http;
 using Resweet.Api.Utils;
 using Resweet.Database.Entities;
@@ -7,22 +7,21 @@ namespace Resweet.Api.Controllers;
 
 public static class UserController
 {
-    public static IResult Create(JsonElement payload)
+    public static IResult Create(JsonObject payload)
     {
-        if (!ApiUtils.IsPayloadValid(payload, "displayName", "handle", "password"))
+        if (!payload.ContainsKeys("displayName", "handle", "password"))
             return Results.BadRequest();
 
-        string displayName = payload.GetProperty("displayName").GetString();
-        string handle = payload.GetProperty("handle").GetString();
-        string password = payload.GetProperty("password").GetString();
+        string displayName = (string)payload["displayName"];
+        string handle = (string)payload["handle"];
+        string password = (string)payload["password"];
 
         User user = User.GetByHandle(handle);
 
         if (user != null)
             return Results.Conflict();
 
-        User.Create(displayName, handle, password);
-        return Results.Created();
+        return Results.Ok(User.Create(displayName, handle, password));
     }
 
     public static IResult GetByHandle(string handle)

@@ -10,16 +10,14 @@ public class Session : Entity<SessionDto>
 {
     private const int SESSION_TOKEN_LENGTH = 64;
 
-    private Guid userId;
     private string sessionToken;
     private DateTime expirationDate;
 
-    public SessionDto ToDto() =>
+    public override SessionDto ToDto() =>
         new SessionDto { SessionToken = sessionToken, ExpirationDate = expirationDate };
 
-    public void PopulateFromReader(NpgsqlDataReader reader)
+    public override void PopulateFromReader(NpgsqlDataReader reader)
     {
-        userId = reader.GetFieldValue<Guid>(0);
         sessionToken = reader.GetFieldValue<string>(1);
         expirationDate = reader.GetFieldValue<DateTime>(2);
     }

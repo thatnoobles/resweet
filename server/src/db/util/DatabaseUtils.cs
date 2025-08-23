@@ -70,6 +70,23 @@ public static class DatabaseUtils
         cmd.ExecuteNonQuery();
     }
 
+    public static T ExecuteReturning<T>(string query, params object[] args)
+    {
+        if (dataSource == null)
+            throw new NullReferenceException(
+                "PGSQL data source is null (has it  been initialized?)"
+            );
+
+        NpgsqlCommand cmd = BuildCommand(query, args);
+        using (NpgsqlDataReader reader = cmd.ExecuteReader())
+        {
+            if (!reader.Read())
+                return default;
+
+            return reader.GetFieldValue<T>(0);
+        }
+    }
+
     private static NpgsqlCommand BuildCommand(string query, params object[] args)
     {
         NpgsqlCommand cmd = dataSource.CreateCommand(query);

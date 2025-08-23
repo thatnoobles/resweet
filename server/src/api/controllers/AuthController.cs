@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http;
 using Resweet.Api.Utils;
 using Resweet.Database.Entities;
@@ -7,15 +7,12 @@ namespace Resweet.Api.Controllers;
 
 public static class AuthController
 {
-    public static IResult Login(JsonElement payload)
+    public static IResult Login(JsonObject payload)
     {
-        if (!ApiUtils.IsPayloadValid(payload, "handle", "password"))
+        if (!payload.ContainsKeys("handle", "password"))
             return Results.BadRequest();
 
-        Session session = Session.Login(
-            payload.GetProperty("handle").GetString(),
-            payload.GetProperty("password").GetString()
-        );
+        Session session = Session.Login((string)payload["handle"], (string)payload["password"]);
 
         if (session == null)
             return Results.Unauthorized();

@@ -11,12 +11,10 @@ public class Group : Entity<GroupDto>
 {
     private const int INVITE_CODE_LENGTH = 32;
 
-    public Guid Id { get; private set; }
-
     private string name;
     private string inviteCode;
 
-    public GroupDto ToDto() =>
+    public override GroupDto ToDto() =>
         new GroupDto
         {
             Name = name,
@@ -24,7 +22,7 @@ public class Group : Entity<GroupDto>
             Users = GetUsers().Select(user => user.ToDto()).ToArray(),
         };
 
-    public void PopulateFromReader(NpgsqlDataReader reader)
+    public override void PopulateFromReader(NpgsqlDataReader reader)
     {
         Id = reader.GetFieldValue<Guid>(0);
         name = reader.GetFieldValue<string>(1);
@@ -64,6 +62,17 @@ public class Group : Entity<GroupDto>
             SELECT u.*
             FROM groups_users gu
             INNER JOIN users u ON gu.user_id = u.id
+            WHERE gu.group_id = ($1)
+            """,
+            Id
+        );
+
+    public Receipt[] GetReceipts() =>
+        DatabaseUtils.SelectMany<Receipt>(
+            """
+            SELECT r.*
+            FROM receipts r
+            INNER JOIN groups_users gu ON gu.user_id = r.user_created_id
             WHERE gu.group_id = ($1)
             """,
             Id

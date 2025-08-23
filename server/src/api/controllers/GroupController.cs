@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http;
 using Resweet.Api.Utils;
 using Resweet.Database.Entities;
@@ -8,17 +9,17 @@ namespace Resweet.Api.Controllers;
 
 public static class GroupController
 {
-    public static IResult Create(JsonElement payload, string sessionToken)
+    public static IResult Create(JsonObject payload, string sessionToken)
     {
         User user = Session.Authenticate(sessionToken);
 
         if (user == null)
             return Results.Unauthorized();
 
-        if (!ApiUtils.IsPayloadValid(payload, "name"))
+        if (payload.ContainsKeys("name"))
             return Results.BadRequest();
 
-        Group group = Group.Create(payload.GetProperty("name").GetString());
+        Group group = Group.Create((string)payload["name"]);
         group.AddUser(user);
         return Results.Ok(group.ToDto());
     }

@@ -1,15 +1,29 @@
+using System;
 using Npgsql;
 using Resweet.Api.DataTransferObjects;
 
 namespace Resweet.Database.Entities;
 
-public interface Entity
+public abstract class Entity
 {
-    public void PopulateFromReader(NpgsqlDataReader reader);
+    public Guid Id { get; protected set; }
+
+    public abstract void PopulateFromReader(NpgsqlDataReader reader);
+
+    public override bool Equals(object obj)
+    {
+        if (obj.GetType() != GetType())
+            return false;
+
+        Entity other = (Entity)obj;
+        return other.Id == Id;
+    }
+
+    public override int GetHashCode() => Id.GetHashCode();
 }
 
-public interface Entity<T> : Entity
+public abstract class Entity<T> : Entity
     where T : Dto
 {
-    public T ToDto();
+    public abstract T ToDto();
 }

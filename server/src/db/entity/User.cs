@@ -8,16 +8,14 @@ namespace Resweet.Database.Entities;
 
 public class User : Entity<UserDto>
 {
-    public Guid Id { get; private set; }
-
     private string displayName;
     private string handle;
     private string passwordHash;
     private byte[] salt;
 
-    public UserDto ToDto() => new UserDto { DisplayName = displayName, Handle = handle };
+    public override UserDto ToDto() => new UserDto { DisplayName = displayName, Handle = handle };
 
-    public void PopulateFromReader(NpgsqlDataReader reader)
+    public override void PopulateFromReader(NpgsqlDataReader reader)
     {
         Id = reader.GetFieldValue<Guid>(0);
         displayName = reader.GetFieldValue<string>(1);
@@ -55,6 +53,9 @@ public class User : Entity<UserDto>
 
         return GetByHandle(handle);
     }
+
+    public static User GetById(Guid id) =>
+        DatabaseUtils.SelectOne<User>("SELECT * FROM users WHERE id = ($1)", id);
 
     public static User GetByHandle(string handle) =>
         DatabaseUtils.SelectOne<User>("SELECT * FROM users WHERE handle = ($1)", handle);

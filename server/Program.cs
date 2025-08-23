@@ -1,9 +1,11 @@
+using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Resweet;
 using Resweet.Api.Controllers;
+using Resweet.Api.Utils;
 using Resweet.Database.Utils;
 
 internal class Program
@@ -18,29 +20,35 @@ internal class Program
         app.MapGet("/", () => "Hello World!");
 
         // USER
-        app.MapPost("/user", ([FromBody] JsonElement json) => UserController.Create(json));
+        app.MapPost(
+            "/user",
+            ([FromBody] JsonElement json) => UserController.Create(json.ToJsonObject())
+        );
         app.MapGet(
             "/user",
             (HttpRequest request) =>
             {
-                if (!request.Headers.ContainsKey("session"))
+                if (!request.Headers.ContainsKey(SESSION))
                     return Results.Unauthorized();
 
-                return UserController.GetCurrent(request.Headers["session"]);
+                return UserController.GetCurrent(request.GetSession());
             }
         );
         app.MapGet("/user/{handle}", UserController.GetByHandle);
 
         // AUTH
-        app.MapPost("/auth/login", ([FromBody] JsonElement json) => AuthController.Login(json));
+        app.MapPost(
+            "/auth/login",
+            ([FromBody] JsonElement json) => AuthController.Login(json.ToJsonObject())
+        );
         app.MapPost(
             "/auth/logout",
             (HttpRequest request) =>
             {
-                if (!request.Headers.ContainsKey("session"))
+                if (!request.Headers.ContainsKey(SESSION))
                     return Results.Unauthorized();
 
-                return AuthController.Logout(request.Headers["session"]);
+                return AuthController.Logout(request.GetSession());
             }
         );
 
@@ -49,30 +57,76 @@ internal class Program
             "/group",
             (HttpRequest request, [FromBody] JsonElement json) =>
             {
-                if (!request.Headers.ContainsKey("session"))
+                if (!request.Headers.ContainsKey(SESSION))
                     return Results.Unauthorized();
 
-                return GroupController.Create(json, request.Headers["session"]);
+                return GroupController.Create(json.ToJsonObject(), request.GetSession());
             }
         );
         app.MapGet(
             "/group",
             (HttpRequest request) =>
             {
-                if (!request.Headers.ContainsKey("session"))
+                if (!request.Headers.ContainsKey(SESSION))
                     return Results.Unauthorized();
 
-                return GroupController.GetCurrent(request.Headers["session"]);
+                return GroupController.GetCurrent(request.GetSession());
             }
         );
         app.MapPost(
             "/join/{inviteCode}",
             (HttpRequest request, string inviteCode) =>
             {
-                if (!request.Headers.ContainsKey("session"))
+                if (!request.Headers.ContainsKey(SESSION))
                     return Results.Unauthorized();
 
-                return GroupController.JoinFromInvite(inviteCode, request.Headers["session"]);
+                return GroupController.JoinFromInvite(inviteCode, request.GetSession());
+            }
+        );
+
+        // RECEIPT
+        app.MapPost(
+            "/receipt",
+            (HttpRequest request, [FromBody] JsonElement json) =>
+            {
+                if (!request.Headers.ContainsKey(SESSION))
+                    return Results.Unauthorized();
+
+                return ReceiptController.Create(json.ToJsonObject(), request.GetSession());
+            }
+        );
+        app.MapGet(
+            "/receipt/{id}",
+            (HttpRequest request, Guid id) =>
+            {
+                if (!request.Headers.ContainsKey(SESSION))
+                    return Results.Unauthorized();
+
+                return ReceiptController.GetById(id, request.GetSession());
+            }
+        );
+        app.MapPut(
+            "/receipt/{id}",
+            (HttpRequest request, [FromBody] JsonElement json, Guid id) =>
+            {
+                if (!request.Headers.ContainsKey(SESSION))
+                    return Results.Unauthorized();
+
+                return ReceiptController.EditReceipt(id, json.ToJsonObject(), request.GetSession());
+            }
+        );
+        app.MapPut(
+            "/receipt/item/{id}",
+            (HttpRequest request, [FromBody] JsonElement json, Guid id) =>
+            {
+                if (!request.Headers.ContainsKey(SESSION))
+                    return Results.Unauthorized();
+
+                return ReceiptController.EditReceiptItem(
+                    id,
+                    json.ToJsonObject(),
+                    request.GetSession()
+                );
             }
         );
 
