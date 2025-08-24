@@ -129,6 +129,23 @@ public class Receipt : Entity<ReceiptDto>
         return GetById(newReceiptId);
     }
 
+    public static void Delete(Guid id)
+    {
+        DatabaseUtils.Execute("DELETE FROM receipts WHERE id = ($1)", id);
+
+        // Also delete any receipt items
+        DatabaseUtils.Execute(
+            """
+            DELETE
+            FROM receipts_items ri
+            USING receipts_receipt_items rri
+            WHERE rri.receipt_item_id = ri.id AND rri.receipt_id = ($1)
+            """,
+            id
+        );
+        DatabaseUtils.Execute("DELETE FROM receipts_receipt_items WHERE receipt_id = ($1)", id);
+    }
+
     public static Receipt GetById(Guid id) =>
         DatabaseUtils.SelectOne<Receipt>("SELECT * FROM receipts WHERE id = ($1)", id);
 }

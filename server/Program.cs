@@ -129,6 +129,16 @@ internal class Program
                 );
             }
         );
+        app.MapDelete(
+            "/receipt/{id}",
+            (HttpRequest request, Guid id) =>
+            {
+                if (!request.Headers.ContainsKey(SESSION))
+                    return Results.Unauthorized();
+
+                return ReceiptController.DeleteReceipt(id, request.GetSession());
+            }
+        );
 
         app.Run();
     }

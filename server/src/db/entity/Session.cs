@@ -33,6 +33,8 @@ public class Session : Entity<SessionDto>
         for (int i = 0; i < SESSION_TOKEN_LENGTH; i++)
             sessionToken += (char)RandomNumberGenerator.GetInt32('0', 'Z');
 
+        DatabaseUtils.Execute("DELETE FROM sessions WHERE user_id = ($1)", user.Id);
+
         DatabaseUtils.Execute(
             """
             INSERT INTO sessions (user_id, session_token)

@@ -128,6 +128,28 @@ public static class ReceiptController
         );
         return Results.Ok(item.ToDto());
     }
+
+    public static IResult DeleteReceipt(Guid id, string sessionToken)
+    {
+        User user = Session.Authenticate(sessionToken);
+
+        if (user == null)
+            return Results.Unauthorized();
+
+        Receipt receipt = Receipt.GetById(id);
+
+        if (receipt == null)
+            return Results.NotFound();
+
+        Group[] userGroups = Group.GetByUser(user);
+
+        // Only allow user to delete receipts from their own group
+        if (!userGroups.Contains(receipt.GetGroup()))
+            return Results.NotFound();
+
+        Receipt.Delete(id);
+        return Results.Ok();
+    }
 }
 
 public struct ReceiptItemPayload

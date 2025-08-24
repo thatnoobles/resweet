@@ -12,8 +12,15 @@ public class User : Entity<UserDto>
     private string handle;
     private string passwordHash;
     private byte[] salt;
+    private string venmoLogin;
 
-    public override UserDto ToDto() => new UserDto { DisplayName = displayName, Handle = handle };
+    public override UserDto ToDto() =>
+        new UserDto
+        {
+            DisplayName = displayName,
+            Handle = handle,
+            VenmoLogin = venmoLogin,
+        };
 
     public override void PopulateFromReader(NpgsqlDataReader reader)
     {
@@ -22,6 +29,7 @@ public class User : Entity<UserDto>
         handle = reader.GetFieldValue<string>(2);
         passwordHash = reader.GetFieldValue<string>(3);
         salt = reader.GetFieldValue<byte[]>(4);
+        venmoLogin = reader.GetFieldValue<string>(5);
     }
 
     public bool ValidatePassword(string password)
